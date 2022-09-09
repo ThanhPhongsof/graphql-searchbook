@@ -1,26 +1,39 @@
 const express = require("express");
 const { ApolloServer } = require("apollo-server-express");
+const mongoose = require("mongoose");
 
 // Load schema & resolvers
 const typeDefs = require("./schema/schema");
 const resolvers = require("./resolver/resolver");
 
-// const server = new ApolloServer({
-//   typeDefs,
-//   resolvers,
-// });
+// Load db methods
+const mongoDataMethods = require("./data/db");
 
-// const app = express();
+// Connect to mongodb
+const connectDB = async () => {
+  try {
+    await mongoose.connect(
+      "mongodb+srv://phong:123456a@cluster0.jslhjoc.mongodb.net/?retryWrites=true&w=majority",
+      {
+        useUnifiedTopology: true,
+      }
+    );
+    console.log("Mongoose connect");
+  } catch (error) {
+    console.log(error.message);
+    process.exit(1);
+  }
+};
 
-// server.applyMiddleware({ app });
-
-// app.listen({ port: process.env.PORT || 4000 }, () =>
-//   console.log(`Server ready at http://localhost:4000${server.graphqlPath}`)
-// );
+connectDB();
 
 async function startApolloServer(typeDefs, resolvers) {
   // Same ApolloServer initialization as before
-  const server = new ApolloServer({ typeDefs, resolvers });
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context: () => ({ mongoDataMethods }),
+  });
 
   // Required logic for integrating with Express
   await server.start();
